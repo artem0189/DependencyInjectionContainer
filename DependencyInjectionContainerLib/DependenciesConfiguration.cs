@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace DependencyInjectionContainerLib
@@ -14,23 +15,28 @@ namespace DependencyInjectionContainerLib
 
         public void Register<T, F>()
         {
-            int metadataToken = typeof(T).MetadataToken;
+            Register(typeof(T), typeof(F));
+        }
+
+        public void Register(Type dependenciType, Type implementationType)
+        {
+            int metadataToken = dependenciType.MetadataToken;
             if (_dependencies.ContainsKey(metadataToken))
             {
-                if (!_dependencies[metadataToken].Contains(typeof(F)))
+                if (!_dependencies[metadataToken].Where(type => type.MetadataToken == implementationType.MetadataToken).Any())
                 {
-                    _dependencies[metadataToken].Add(typeof(F));
+                    _dependencies[metadataToken].Add(implementationType);
                 }
             }
             else
             {
-                _dependencies.Add(metadataToken, new List<Type>() { typeof(F) });
+                _dependencies.Add(metadataToken, new List<Type>() { implementationType });
             }
         }
 
-        public Dictionary<int, List<Type>> GetDependencies()
+        public bool TryGetValue(Type type, out List<Type> implementations)
         {
-            return _dependencies;
+            return _dependencies.TryGetValue(type.MetadataToken, out implementations);
         }
     }
 }
