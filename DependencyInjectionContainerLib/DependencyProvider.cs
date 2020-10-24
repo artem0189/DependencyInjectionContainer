@@ -22,7 +22,7 @@ namespace DependencyInjectionContainerLib
             return (T)Resolve(typeof(T), false);
         }
 
-        private object Resolve(Type type, bool isCreateAllImplementation)
+        private object Resolve(Type type, bool isCreateAllImplementations)
         {
             object instance = null;
             List<Type> implementations = null;
@@ -36,7 +36,7 @@ namespace DependencyInjectionContainerLib
             else
             {
                 IDependencyLife dependencyLifeObject = null;
-                if (isCreateAllImplementation)
+                if (isCreateAllImplementations)
                 {
                     instance = Activator.CreateInstance(typeof(List<>).MakeGenericType(type));
                     for (int i = 0; i < implementations.Count; i++)
