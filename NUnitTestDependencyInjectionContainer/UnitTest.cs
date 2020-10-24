@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using DependencyInjectionContainerLib;
+using DependencyInjectionContainerLib.Attribute;
 
 namespace NUnitTestDependencyInjectionContainer
 {
@@ -18,21 +19,23 @@ namespace NUnitTestDependencyInjectionContainer
         public int a = 2;
     }
 
-    public interface ITest2<T> { }
+    public interface ITest2 { }
 
-    public class TestImpl1<T> : ITest2<T>
+    public class TestImplTest2 : ITest2
     {
-        public TestImpl1()
+        public ITest1 t;
+
+        public TestImplTest2()
         {
 
         }
 
-        public TestImpl1(ITest1 test1)
+        public TestImplTest2([DependecyKey(2)]ITest1 test1)
         {
-
+            t = test1;
         }
 
-        public TestImpl1(int a, int b)
+        public TestImplTest2(int a, int b)
         {
 
         }
@@ -44,9 +47,10 @@ namespace NUnitTestDependencyInjectionContainer
         public void Test1()
         {
             var dependencies = new DependenciesConfiguration();
-            dependencies.Register<ITest1, TestImpl1>(DependencyLifeTime.InstancePerDependency);
+            dependencies.Register<ITest1, TestImpl1>(DependencyLifeTime.InstancePerDependency, 1);
+            dependencies.Register<ITest2, TestImplTest2>(DependencyLifeTime.InstancePerDependency);
             var provider = new DependencyProvider(dependencies);
-            var t = provider.Resolve<ITest1>();
+            var t = provider.Resolve<ITest2>();
         }
     }
 }

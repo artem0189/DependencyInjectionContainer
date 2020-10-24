@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using DependencyInjectionContainerLib.Attribute;
 using DependencyInjectionContainerLib.Reflection;
 using DependencyInjectionContainerLib.Implementation;
 
@@ -17,20 +18,20 @@ namespace DependencyInjectionContainerLib
             _dependencies = dependencies;
         }
 
-        public T Resolve<T>()
+        public T Resolve<T>(uint? dependecyName = null)
         {
-            return (T)Resolve(typeof(T), false);
+            return (T)Resolve(typeof(T), false, dependecyName != null? Convert.ToInt32(dependecyName) : -1);
         }
 
-        private object Resolve(Type type, bool isCreateAllImplementations)
+        private object Resolve(Type type, bool isCreateAllImplementations, int dependecyName)
         {
             object instance = null;
             List<Type> implementations = null;
-            if (!_dependencies.TryGetValue(type, out implementations))
+            if (!_dependencies.TryGetValue(type, out implementations, dependecyName))
             {
                 if (type.GetInterface("IEnumerable") != null)
                 {
-                    instance = Resolve(type.GetGenericArguments().First(), true);
+                    instance = Resolve(type.GetGenericArguments().First(), true, dependecyName);
                 }
             }
             else
@@ -42,13 +43,13 @@ namespace DependencyInjectionContainerLib
                     for (int i = 0; i < implementations.Count; i++)
                     {
                         dependencyLifeObject = (IDependencyLife)ObjectCreator.CreateInstance(implementations[i]);
-                        (instance as IList).Add(dependencyLifeObject.GetInstance(type.GetGenericArguments(), GetConstructorParams(implementations[i])));
+                        (instance as IList).Add(dependencyLifeObject.GetInstance(type.GetGenericArguments(), GetConstructorParams(implementations[i].GenericTypeArguments[0])));
                     }
                 }
                 else
                 {
                     dependencyLifeObject = (IDependencyLife)ObjectCreator.CreateInstance(implementations[0]);
-                    instance = dependencyLifeObject.GetInstance(type.GetGenericArguments(), GetConstructorParams(implementations[0]));
+                    instance = dependencyLifeObject.GetInstance(type.GetGenericArguments(), GetConstructorParams(implementations[0].GenericTypeArguments[0]));
                 }
             }
             return instance;
@@ -64,7 +65,15 @@ namespace DependencyInjectionContainerLib
                 ParameterInfo[] parameters = constructors[i].GetParameters();
                 for (int j = 0; j < parameters.Length; j++)
                 {
-                    buffParams.Add(Resolve(parameters[j].ParameterType, false));
+
+                    if (parameters[j].IsDefined(typeof(DependecyKeyAttribute)))
+                    {
+                        buffParams.Add(Resolve(parameters[j].ParameterType, false, Convert.ToInt32((parameters[j].GetCustomAttribute(typeof(DependecyKeyAttribute)) as DependecyKeyAttribute).Number)));
+                    }
+                    else
+                    {
+                        buffParams.Add(Resolve(parameters[j].ParameterType, false, -1));
+                    }
                 }
                 if (constructorParams.Where(pr => pr != null).Count() <= buffParams.Where(pr => pr != null).Count())
                 {

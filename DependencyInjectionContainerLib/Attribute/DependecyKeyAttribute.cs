@@ -4,11 +4,12 @@ using System.Text;
 
 namespace DependencyInjectionContainerLib.Attribute
 {
-    public class DependecyKey : System.Attribute
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public class DependecyKeyAttribute : System.Attribute
     {
         public uint Number { get; private set; }
 
-        public DependecyKey(uint number)
+        public DependecyKeyAttribute(uint number)
         {
             Number = number;
         }
