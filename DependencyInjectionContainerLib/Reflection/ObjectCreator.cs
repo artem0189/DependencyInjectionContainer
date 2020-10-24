@@ -8,23 +8,13 @@ namespace DependencyInjectionContainerLib.Reflection
     {
         internal static object CreateInstance(Type type)
         {
-            return CreateInstance(type, null, null);
-        }
-
-        internal static object CreateInstance(Type type, Type[] genericArguments)
-        {
-            return CreateInstance(type, genericArguments, null);
-        }
-
-        internal static object CreateInstance(Type type, object[] constructorParams)
-        {
-            return CreateInstance(type, null, constructorParams);
+            return CreateInstance(type, new Type[] { }, new object[] { });
         }
 
         internal static object CreateInstance(Type type, Type[] genericArguments, object[] constructorParams)
         {
             object instance = null;
-            if (type.IsGenericType)
+            if (type.IsGenericTypeDefinition)
             {
                 instance = Activator.CreateInstance(type.MakeGenericType(genericArguments), constructorParams);
             }

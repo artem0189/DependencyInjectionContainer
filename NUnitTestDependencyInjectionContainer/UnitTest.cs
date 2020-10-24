@@ -1,11 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using DependencyInjectionContainerLib;
 
 namespace NUnitTestDependencyInjectionContainer
 {
-    interface ITest1 { }
+    public interface ITest1 { }
 
     public class TestImpl1 : ITest1
     {
@@ -17,11 +18,24 @@ namespace NUnitTestDependencyInjectionContainer
         public int a = 2;
     }
 
-    interface ITest2<T> { }
+    public interface ITest2<T> { }
 
     public class TestImpl1<T> : ITest2<T>
     {
+        public TestImpl1()
+        {
 
+        }
+
+        public TestImpl1(ITest1 test1)
+        {
+
+        }
+
+        public TestImpl1(int a, int b)
+        {
+
+        }
     }
 
     public class Tests
@@ -30,9 +44,9 @@ namespace NUnitTestDependencyInjectionContainer
         public void Test1()
         {
             var dependencies = new DependenciesConfiguration();
-            dependencies.Register(typeof(ITest2<>), typeof(TestImpl1<>));
+            dependencies.Register<ITest1, TestImpl1>(DependencyLifeTime.InstancePerDependency);
             var provider = new DependencyProvider(dependencies);
-            var obj = provider.Resolve<ITest2<int>>();
+            var t = provider.Resolve<ITest1>();
         }
     }
 }
