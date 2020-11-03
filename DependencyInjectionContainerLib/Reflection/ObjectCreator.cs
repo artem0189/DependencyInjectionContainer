@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,21 +7,35 @@ namespace DependencyInjectionContainerLib.Reflection
 {
     internal static class ObjectCreator
     {
-        internal static object CreateInstance(Type type)
+        internal static object CreateInstance(Type type, object[] constructorParams)
         {
-            return CreateInstance(type, new Type[] { }, new object[] { });
+            return CreateInstance(type, new Type[] { }, constructorParams);
+        }
+
+        internal static object CreateInstance(Type type, Type[] genericArguments)
+        {
+            return CreateInstance(type, genericArguments, new object[] { });
         }
 
         internal static object CreateInstance(Type type, Type[] genericArguments, object[] constructorParams)
         {
-            object instance = null;
-            if (type.IsGenericTypeDefinition)
+            return Activator.CreateInstance(CreateType(type, genericArguments), constructorParams);
+        }
+
+        private static Type CreateType(Type baseType, Type[] geneticArguments)
+        {
+            Type instance = baseType;
+            if (baseType.IsGenericTypeDefinition)
             {
-                instance = Activator.CreateInstance(type.MakeGenericType(genericArguments), constructorParams);
+                instance = baseType.MakeGenericType(geneticArguments);
             }
             else
             {
-                instance = Activator.CreateInstance(type, constructorParams);
+                if (baseType.IsGenericType)
+                {
+                    Type[] currentStepGenericArgs = baseType.GetGenericArguments().Select(arg => CreateType(arg, geneticArguments)).ToArray();
+                    instance = baseType.GetGenericTypeDefinition().MakeGenericType(currentStepGenericArgs);
+                }
             }
             return instance;
         }

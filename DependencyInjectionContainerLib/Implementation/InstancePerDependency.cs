@@ -7,9 +7,9 @@ namespace DependencyInjectionContainerLib.Implementation
 {
     internal class InstancePerDependency<T> : IDependencyLife
     {
-        public object GetInstance(Type[] genericArguments, object[] constructorParams)
+        object IDependencyLife.GetInstance(object[] constructorParams)
         {
-            return ObjectCreator.CreateInstance(typeof(T), genericArguments, constructorParams);
+            return ObjectCreator.CreateInstance(typeof(T), constructorParams);
         }
     }
 }

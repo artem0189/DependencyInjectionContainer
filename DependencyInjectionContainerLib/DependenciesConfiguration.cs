@@ -11,26 +11,14 @@ namespace DependencyInjectionContainerLib
         Singletone
     }
 
-    internal struct Impl
-    {
-        internal Type Type { get; }
-        internal int DependencyName { get; }
-
-        internal Impl(Type type, uint? dependencyName = null)
-        {
-            Type = type;
-            DependencyName = dependencyName != null ? Convert.ToInt32(dependencyName) : -1;
-        }
-    }
-
     public class DependenciesConfiguration
     {
-        private Dictionary<int, List<Impl>> _dependencies;
         private static Dictionary<DependencyLifeTime, Type> _lifeTypes;
+        private Dictionary<int, Dictionary<int, List<Type>>> _dependencies;
 
         public DependenciesConfiguration()
         {
-            _dependencies = new Dictionary<int, List<Impl>>();
+            _dependencies = new Dictionary<int, Dictionary<int, List<Type>>>();
             _lifeTypes = new Dictionary<DependencyLifeTime, Type>()
             {
                 { DependencyLifeTime.InstancePerDependency, typeof(InstancePerDependency<>) },
@@ -45,29 +33,41 @@ namespace DependencyInjectionContainerLib
 
         public void Register(Type dependencyType, Type implementationType, DependencyLifeTime dependencyLifeTime, uint? dependencyName = null)
         {
-            int metadataToken = dependencyType.MetadataToken;
-            if (_dependencies.ContainsKey(metadataToken))
+            int dependencyMetadataToken = dependencyType.MetadataToken;
+            int implementationMetadataToken = implementationType.MetadataToken;
+            int dependencyNameKey = dependencyName != null ? Convert.ToInt32(dependencyName) : -1;
+            if (_dependencies.ContainsKey(dependencyMetadataToken))
             {
-                if (!_dependencies[metadataToken].Where(type => type.Type.GenericTypeArguments.First().MetadataToken == implementationType.MetadataToken).Any())
+                if (_dependencies[dependencyMetadataToken].ContainsKey(dependencyNameKey))
                 {
-                    _dependencies[metadataToken].Add(new Impl(_lifeTypes[dependencyLifeTime].MakeGenericType(implementationType), dependencyName));
+                    if (!_dependencies[dependencyMetadataToken][dependencyNameKey].Where(impl => impl.GenericTypeArguments.First().MetadataToken == implementationMetadataToken).Any())
+                    {
+                        _dependencies[dependencyMetadataToken][dependencyNameKey].Add(_lifeTypes[dependencyLifeTime].MakeGenericType(implementationType));
+                    }
+                }
+                else
+                {
+                    _dependencies[dependencyMetadataToken].Add(dependencyNameKey, new List<Type> { _lifeTypes[dependencyLifeTime].MakeGenericType(implementationType) });
                 }
             }
             else
             {
-                _dependencies.Add(metadataToken, new List<Impl>() { new Impl(_lifeTypes[dependencyLifeTime].MakeGenericType(implementationType), dependencyName) });
+                _dependencies.Add(dependencyMetadataToken, new Dictionary<int, List<Type>> { { dependencyNameKey, new List<Type> { _lifeTypes[dependencyLifeTime].MakeGenericType(implementationType) } } });
             }
         }
 
         internal bool TryGetValue(Type type, out List<Type> implementations, int dependencyName = -1)
         {
             implementations = null;
-            List<Impl> impls = new List<Impl>(); 
-            if (_dependencies.TryGetValue(type.MetadataToken, out impls))
+            int typeMetadataToken = type.MetadataToken;
+            if (_dependencies.ContainsKey(typeMetadataToken))
             {
-                implementations = impls.Where(impl => impl.DependencyName == dependencyName).Select(impl => impl.Type).ToList();
+                if (_dependencies[typeMetadataToken].ContainsKey(dependencyName))
+                {
+                    implementations = _dependencies[typeMetadataToken][dependencyName];
+                }
             }
-            return implementations != null && implementations.Count != 0;
+            return implementations != null;
         }
     }
 }

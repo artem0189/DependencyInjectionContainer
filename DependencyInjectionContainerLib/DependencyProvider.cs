@@ -14,24 +14,23 @@ namespace DependencyInjectionContainerLib
         private DependenciesConfiguration _dependencies;
         public DependencyProvider(DependenciesConfiguration dependencies)
         {
-            // Container validation
             _dependencies = dependencies;
         }
 
         public T Resolve<T>(uint? dependecyName = null)
         {
-            return (T)Resolve(typeof(T), false, dependecyName != null? Convert.ToInt32(dependecyName) : -1);
+            return (T)Resolve(typeof(T), false, dependecyName != null ? Convert.ToInt32(dependecyName) : -1);
         }
 
-        private object Resolve(Type type, bool isCreateAllImplementations, int dependecyName)
+        private object Resolve(Type type, bool isCreateAllImplementations, int dependencyName)
         {
             object instance = null;
             List<Type> implementations = null;
-            if (!_dependencies.TryGetValue(type, out implementations, dependecyName))
+            if (!_dependencies.TryGetValue(type, out implementations, dependencyName))
             {
                 if (type.GetInterface("IEnumerable") != null)
                 {
-                    instance = Resolve(type.GetGenericArguments().First(), true, dependecyName);
+                    instance = Resolve(type.GetGenericArguments().First(), true, dependencyName);
                 }
             }
             else
@@ -42,14 +41,14 @@ namespace DependencyInjectionContainerLib
                     instance = Activator.CreateInstance(typeof(List<>).MakeGenericType(type));
                     for (int i = 0; i < implementations.Count; i++)
                     {
-                        dependencyLifeObject = (IDependencyLife)ObjectCreator.CreateInstance(implementations[i]);
-                        (instance as IList).Add(dependencyLifeObject.GetInstance(type.GetGenericArguments(), GetConstructorParams(implementations[i].GenericTypeArguments[0])));
+                        dependencyLifeObject = (IDependencyLife)ObjectCreator.CreateInstance(implementations[i], type.GetGenericArguments());
+                        (instance as IList).Add(dependencyLifeObject.GetInstance(GetConstructorParams(implementations[i].GenericTypeArguments[0])));
                     }
                 }
                 else
                 {
-                    dependencyLifeObject = (IDependencyLife)ObjectCreator.CreateInstance(implementations[0]);
-                    instance = dependencyLifeObject.GetInstance(type.GetGenericArguments(), GetConstructorParams(implementations[0].GenericTypeArguments[0]));
+                    dependencyLifeObject = (IDependencyLife)ObjectCreator.CreateInstance(implementations[0], type.GetGenericArguments());
+                    instance = dependencyLifeObject.GetInstance(GetConstructorParams(implementations[0].GenericTypeArguments[0]));
                 }
             }
             return instance;

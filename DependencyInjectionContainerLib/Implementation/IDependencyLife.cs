@@ -6,6 +6,6 @@ namespace DependencyInjectionContainerLib.Implementation
 {
     internal interface IDependencyLife
     {
-        object GetInstance(Type[] genericArguments, object[] constructorParams);
+        internal object GetInstance(object[] constructorParams);
     }
 }
