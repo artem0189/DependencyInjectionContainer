@@ -17,7 +17,7 @@ namespace DependencyInjectionContainerLib
             _dependencies = dependencies;
         }
 
-        public T Resolve<T>(uint? dependecyName = null)
+        public T Resolve<T>(ushort? dependecyName = null)
         {
             return (T)Resolve(typeof(T), false, dependecyName != null ? Convert.ToInt32(dependecyName) : -1);
         }
@@ -28,7 +28,7 @@ namespace DependencyInjectionContainerLib
             List<Type> implementations = null;
             if (!_dependencies.TryGetValue(type, out implementations, dependencyName))
             {
-                if (type.GetInterface("IEnumerable") != null)
+                if (type.GetInterface("IEnumerable") != null && type.IsGenericType)
                 {
                     instance = Resolve(type.GetGenericArguments().First(), true, dependencyName);
                 }
@@ -56,31 +56,23 @@ namespace DependencyInjectionContainerLib
 
         private object[] GetConstructorParams(Type type)
         {
-            object[] constructorParams = new object[0];
-            List<object> buffParams = new List<object>();
-            ConstructorInfo[] constructors = type.GetConstructors().OrderByDescending(cn => cn.GetParameters().Length).ToArray();
-            for (int i = 0; i < constructors.Length; i++)
-            {
-                ParameterInfo[] parameters = constructors[i].GetParameters();
-                for (int j = 0; j < parameters.Length; j++)
-                {
+            List<object> constructorParams = new List<object>();
+            ConstructorInfo constructor = type.GetConstructors().OrderByDescending(con => con.GetParameters().Length).First();
 
-                    if (parameters[j].IsDefined(typeof(DependecyKeyAttribute)))
-                    {
-                        buffParams.Add(Resolve(parameters[j].ParameterType, false, Convert.ToInt32((parameters[j].GetCustomAttribute(typeof(DependecyKeyAttribute)) as DependecyKeyAttribute).Number)));
-                    }
-                    else
-                    {
-                        buffParams.Add(Resolve(parameters[j].ParameterType, false, -1));
-                    }
-                }
-                if (constructorParams.Where(pr => pr != null).Count() <= buffParams.Where(pr => pr != null).Count())
+            ParameterInfo[] parameters = constructor.GetParameters();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].IsDefined(typeof(DependecyKeyAttribute)))
                 {
-                    constructorParams = buffParams.ToArray();
+                    constructorParams.Add(Resolve(parameters[i].ParameterType, false, Convert.ToInt32((parameters[i].GetCustomAttribute(typeof(DependecyKeyAttribute)) as DependecyKeyAttribute).Number)));
                 }
-                buffParams.Clear();
+                else
+                {
+                    constructorParams.Add(Resolve(parameters[i].ParameterType, false, -1));
+                }
             }
-            return constructorParams;
+
+            return constructorParams.ToArray();
         }
     }
 }

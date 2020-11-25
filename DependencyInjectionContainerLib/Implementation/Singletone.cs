@@ -8,18 +8,21 @@ namespace DependencyInjectionContainerLib.Implementation
     internal class Singletone<T> : IDependencyLife
     {
         private static T instance;
-        private static readonly object obj = new object();
+        private readonly object obj = new object();
 
         object IDependencyLife.GetInstance(object[] constructorParams)
         {
-            lock (obj)
+            if (instance == null)
             {
-                if (instance == null)
+                lock (obj)
                 {
-                    instance = (T)ObjectCreator.CreateInstance(typeof(T), constructorParams);
+                    if (instance == null)
+                    {
+                        instance = (T)ObjectCreator.CreateInstance(typeof(T), constructorParams);
+                    }
                 }
-                return instance;
             }
+            return instance;
         }
     }
 }

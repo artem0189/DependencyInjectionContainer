@@ -26,12 +26,12 @@ namespace DependencyInjectionContainerLib
             };
         }
 
-        public void Register<T, F>(DependencyLifeTime dependencyLifeTime, uint? dependencyName = null)
+        public void Register<T, F>(DependencyLifeTime dependencyLifeTime, ushort? dependencyName = null)
         {
             Register(typeof(T), typeof(F), dependencyLifeTime, dependencyName);
         }
 
-        public void Register(Type dependencyType, Type implementationType, DependencyLifeTime dependencyLifeTime, uint? dependencyName = null)
+        public void Register(Type dependencyType, Type implementationType, DependencyLifeTime dependencyLifeTime, ushort? dependencyName = null)
         {
             int dependencyMetadataToken = dependencyType.MetadataToken;
             int implementationMetadataToken = implementationType.MetadataToken;

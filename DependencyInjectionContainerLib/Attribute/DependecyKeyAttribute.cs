@@ -7,9 +7,9 @@ namespace DependencyInjectionContainerLib.Attribute
     [AttributeUsage(AttributeTargets.Parameter)]
     public class DependecyKeyAttribute : System.Attribute
     {
-        public uint Number { get; private set; }
+        public ushort Number { get; private set; }
 
-        public DependecyKeyAttribute(uint number)
+        public DependecyKeyAttribute(ushort number)
         {
             Number = number;
         }

@@ -9,12 +9,12 @@ namespace DependencyInjectionContainerLib.Reflection
     {
         internal static object CreateInstance(Type type, object[] constructorParams)
         {
-            return CreateInstance(type, new Type[] { }, constructorParams);
+            return CreateInstance(type, Array.Empty<Type>(), constructorParams);
         }
 
         internal static object CreateInstance(Type type, Type[] genericArguments)
         {
-            return CreateInstance(type, genericArguments, new object[] { });
+            return CreateInstance(type, genericArguments, Array.Empty<object>());
         }
 
         internal static object CreateInstance(Type type, Type[] genericArguments, object[] constructorParams)
